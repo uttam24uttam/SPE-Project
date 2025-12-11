@@ -1,0 +1,9 @@
+---
+- name: Deploy Doctor Appointment Application to Kubernetes
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+    
+  roles:
+    - kubernetes

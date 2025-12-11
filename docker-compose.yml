@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: doctor_appointment_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - appointment_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: doctor_appointment_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URI: mongodb://admin:password@mongo:27017/doctor_appointment?authSource=admin
+      JWT_SECRET: your_secret_key_change_in_production
+      NODE_ENV: development
+    networks:
+      - appointment_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: doctor_appointment_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: http://backend:5000/api
+    networks:
+      - appointment_network
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+networks:
+  appointment_network:
+    driver: bridge
