@@ -1,0 +1,25 @@
+---
+# tasks file for docker role
+- name: Copy docker-compose.yml to target host
+  copy:
+    src: ../../../../docker-compose.yml
+    dest: /opt/doctor-appointment/docker-compose.yml
+    mode: '0644'
+
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+  become: true
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+  become: true
+
+- name: Start application with Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /opt/doctor-appointment
+  become: true
