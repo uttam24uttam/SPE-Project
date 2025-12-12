@@ -3,12 +3,20 @@
 # kind: Service
 # metadata:
 #   name: elasticsearch
-# spec:
-#   ports:
-#     - port: 9200
-#       name: http
-#   selector:
-#     app: elasticsearch
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:7.17.15
+          ports:
+            - containerPort: 5044
+          volumeMounts:
+            - name: logstash-pipeline
+              mountPath: /usr/share/logstash/pipeline/logstash.conf
+              subPath: logstash-pipeline.conf
+      volumes:
+        - name: logstash-pipeline
+          configMap:
+            name: logstash-pipeline
 # ---
 # apiVersion: apps/v1
 # kind: Deployment
@@ -111,19 +119,126 @@
 
 
 
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: elasticsearch
+# spec:
+#   ports:
+#     - port: 9200
+#       name: http
+#   selector:
+#     app: elasticsearch
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: elasticsearch
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: elasticsearch
+#   template:
+#     metadata:
+#       labels:
+#         app: elasticsearch
+#     spec:
+#       containers:
+#         - name: elasticsearch
+#           image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+#           env:
+#             - name: discovery.type
+#               value: single-node
+#             - name: xpack.security.enabled
+#               value: "false"
+#             - name: xpack.security.http.ssl.enabled
+#               value: "false"
+#           ports:
+#             - containerPort: 9200
+#           resources:
+#             requests:
+#               memory: "2Gi"
+#               cpu: "1"
+#             limits:
+#               memory: "2Gi"
+#               cpu: "2"
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: kibana
+# spec:
+#   ports:
+#     - port: 5601
+#       name: http
+#   selector:
+#     app: kibana
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: kibana
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: kibana
+#   template:
+#     metadata:
+#       labels:
+#         app: kibana
+#     spec:
+#       containers:
+#         - name: kibana
+#           image: docker.elastic.co/kibana/kibana:8.12.0
+#           env:
+#             - name: ELASTICSEARCH_HOSTS
+#               value: "http://elasticsearch:9200"
+#             - name: XPACK_SECURITY_ENABLED
+#               value: "false"
+#             - name: XPACK_ENCRYPTED_SAVED_OBJECTS_ENCRYPTIONKEY
+#               value: "mySuperSecretKey1234567890"
+#             - name: ELASTIC_APM_ACTIVE
+#               value: "false"
+#           ports:
+#             - containerPort: 5601
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: logstash
+# spec:
+#   ports:
+#     - port: 5044
+#       name: beats
+#   selector:
+#     app: logstash
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: logstash
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: logstash
+#   template:
+#     metadata:
+#       labels:
+#         app: logstash
+#     spec:
+#       containers:
+#         - name: logstash
+#           image: docker.elastic.co/logstash/logstash:8.12.0
+#           ports:
+#             - containerPort: 5044
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: elasticsearch
-spec:
-  ports:
-    - port: 9200
-      name: http
-  selector:
-    app: elasticsearch
----
+
+
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -144,14 +259,17 @@ spec:
           env:
             - name: discovery.type
               value: single-node
-
             - name: xpack.security.enabled
               value: "false"
             - name: xpack.security.http.ssl.enabled
               value: "false"
-
+            - name: cluster.routing.allocation.disk.threshold_enabled
+              value: "false"
           ports:
             - containerPort: 9200
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
           resources:
             requests:
               memory: "2Gi"
@@ -159,45 +277,10 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "2"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kibana
-spec:
-  ports:
-    - port: 5601
-      name: http
-  selector:
-    app: kibana
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kibana
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: kibana
-  template:
-    metadata:
-      labels:
-        app: kibana
-    spec:
-      containers:
-        - name: kibana
-          image: docker.elastic.co/kibana/kibana:8.12.0
-          env:
-            - name: ELASTICSEARCH_HOSTS
-              value: "http://elasticsearch:9200"
+      volumes:
+        - name: es-data
+          emptyDir: {}
 
-            
-            - name: XPACK_SECURITY_ENABLED
-              value: "false"
-
-          ports:
-            - containerPort: 5601
 ---
 apiVersion: v1
 kind: Service
