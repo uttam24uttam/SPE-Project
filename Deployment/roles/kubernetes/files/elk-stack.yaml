@@ -1,3 +1,128 @@
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: logstash-pipeline
+#   namespace: doctor-appointment
+# data:
+#   logstash.conf: |
+#     input {
+#       tcp {
+#         port => 5000
+#         codec => json_lines
+#       }
+#     }
+#     output {
+#       elasticsearch {
+#         hosts => ["http://elasticsearch:9200"]
+#         index => "app-logs-%{+YYYY.MM.dd}"
+#       }
+#       stdout { codec => rubydebug }
+#     }
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: elasticsearch
+#   namespace: doctor-appointment
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: elasticsearch
+#   template:
+#     metadata:
+#       labels:
+#         app: elasticsearch
+#     spec:
+#       containers:
+#         - name: elasticsearch
+#           image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+#           env:
+#             - name: discovery.type
+#               value: single-node
+#             - name: xpack.security.enabled
+#               value: "false"
+#             - name: xpack.security.http.ssl.enabled
+#               value: "false"
+#             - name: cluster.routing.allocation.disk.threshold_enabled
+#               value: "false"
+#             - name: ES_JAVA_OPTS
+#               value: "-Xms1g -Xmx1g"
+#           ports:
+#             - containerPort: 9200
+#           volumeMounts:
+#             - name: es-data
+#               mountPath: /usr/share/elasticsearch/data
+#           resources:
+#             requests:
+#               memory: "2Gi"
+#               cpu: "1"
+#             limits:
+#               memory: "2Gi"
+#               cpu: "2"
+#       volumes:
+#         - name: es-data
+#           emptyDir: {}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: elasticsearch
+#   namespace: doctor-appointment
+# spec:
+#   ports:
+#     - port: 9200
+#       name: http
+#   selector:
+#     app: elasticsearch
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: logstash
+#   namespace: doctor-appointment
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: logstash
+#   template:
+#     metadata:
+#       labels:
+#         app: logstash
+#     spec:
+#       containers:
+#         - name: logstash
+#           image: docker.elastic.co/logstash/logstash:8.12.0
+#           env:
+#             - name: LOGSTASH_PIPELINE_PATH
+#               value: /usr/share/logstash/pipeline/logstash.conf
+#           ports:
+#             - containerPort: 5000
+#           volumeMounts:
+#             - name: logstash-pipeline
+#               mountPath: /usr/share/logstash/pipeline/logstash.conf
+#               subPath: logstash.conf
+#       volumes:
+#         - name: logstash-pipeline
+#           configMap:
+#             name: logstash-pipeline
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: logstash
+#   namespace: doctor-appointment
+# spec:
+#   ports:
+#     - port: 5000
+#       name: tcp
+#   selector:
+#     app: logstash
+
+
+
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -119,3 +244,44 @@ spec:
       name: tcp
   selector:
     app: logstash
+---
+# --- ADDED KIBANA BELOW ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: doctor-appointment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.12.0
+          ports:
+            - containerPort: 5601
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch:9200"
+            - name: XPACK_SECURITY_ENABLED
+              value: "false"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: doctor-appointment
+spec:
+  type: NodePort  # Allows external access if needed, or use port-forward
+  selector:
+    app: kibana
+  ports:
+    - port: 5601
+      targetPort: 5601
+      nodePort: 30001
