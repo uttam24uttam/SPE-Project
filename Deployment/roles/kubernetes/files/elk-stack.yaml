@@ -265,7 +265,7 @@ spec:
               value: "false"
             - name: cluster.routing.allocation.disk.threshold_enabled
               value: "false"
-          ports:
+          ports:          kubectl get pods -n doctor-appointment | grep elasticsearch
             - containerPort: 9200
           volumeMounts:
             - name: es-data

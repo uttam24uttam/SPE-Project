@@ -7,10 +7,17 @@ require('dotenv').config();
 // Logstash TCP logger setup
 const net = require('net');
 function logToLogstash(logObj) {
-    const client = net.createConnection({ host: process.env.LOGSTASH_HOST || 'logstash', port: 5000 }, () => {
-        client.write(JSON.stringify(logObj) + '\n');
-        client.end();
-    });
+    try {
+        const client = net.createConnection({ host: process.env.LOGSTASH_HOST || 'logstash', port: 5000 }, () => {
+            client.write(JSON.stringify(logObj) + '\n');
+            client.end();
+        });
+        client.on('error', (err) => {
+            // Silently ignore Logstash connection errors
+        });
+    } catch (err) {
+        // Silently ignore Logstash connection errors
+    }
 }
 
 const app = express();
