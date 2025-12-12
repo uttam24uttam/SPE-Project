@@ -1,7 +1,3 @@
-#!/bin/bash
-
-# Cleanup and tear down the Kubernetes deployment
-
 set -e
 
 # Colors for output

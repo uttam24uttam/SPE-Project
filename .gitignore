@@ -62,9 +62,3 @@ venv/
 
 # Jenkins
 .jenkinsfile.bak
-
-JENKINS_SETUP.md
-MONITORING_GUIDE.md
-DELIVERY_SUMMARY.md
-API_DOCUMENTATION.md
-CICD_GUIDE.md

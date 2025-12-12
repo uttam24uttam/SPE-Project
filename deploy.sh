@@ -1,13 +1,10 @@
-#!/bin/bash
-
 # Deploy to Kubernetes using Ansible
 
 set -e
 
-echo "=================================="
+
 echo "Doctor Appointment Application"
 echo "Kubernetes Deployment Script"
-echo "=================================="
 
 
 RED='\033[0;31m'
