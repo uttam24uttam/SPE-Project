@@ -10,7 +10,12 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
+const isTest = process.env.NODE_ENV === 'test';
+const mongoUri = process.env.MONGODB_URI || (isTest ? 'mongodb://localhost:27017/testdb' : undefined);
+if (!mongoUri) {
+    throw new Error('MONGODB_URI is not set');
+}
+mongoose.connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
@@ -27,9 +32,12 @@ app.get('/health', (req, res) => {
     res.json({ status: 'Backend is running' });
 });
 
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (!isTest) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 module.exports = app;

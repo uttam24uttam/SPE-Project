@@ -10,7 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('Git Clone') {
+        stage('Step 1 : Git Clone') {
             steps {
                 script {
                     echo " Step 1 : Git Clone "
