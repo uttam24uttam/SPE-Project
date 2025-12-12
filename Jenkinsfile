@@ -13,14 +13,14 @@ pipeline {
         stage('Git Clone') {
             steps {
                 script {
-                    echo "========== Git Clone Stage =========="
+                    echo " Step 1 : Git Clone "
                     checkout scm
                     sh 'git log -1 --oneline'
                 }
             }
         }
 
-        stage('Install Requirements') {
+        stage(' Step 2 : Install Requirements') {
             steps {
                 script {
                     echo "========== Setup Backend Stage =========="
@@ -30,18 +30,20 @@ pipeline {
             }
         }
 
-        stage('Test Backend') {
+        stage(' Step 3 : Test Backend') {
             steps {
                 script {
                     echo "========== Test Backend Stage =========="
-                    sh 'cd backend && npm test' || true
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh 'cd backend && npm test'
+                    }
                     echo "Backend tests completed"
                 }
             }
         }
         // }
 
-        stage('Build and Push Backend Docker Image') {
+        stage(' Step 4 : Build and Push Backend Docker Image') {
             steps {
                 script {
                     echo "========== Build and Push Backend Docker Image Stage =========="
@@ -67,7 +69,7 @@ pipeline {
             }
         }
 
-        stage('Build and Push Frontend Docker Image') {
+        stage(' Step 5 : Build and Push Frontend Docker Image') {
             steps {
                 script {
                     echo "========== Build and Push Frontend Docker Image Stage =========="
@@ -88,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('Clean Docker Images') {
+        stage(' Step 6 : Clean Docker Images') {
             steps {
                 script {
                     echo "========== Clean Docker Images Stage =========="
@@ -105,7 +107,7 @@ pipeline {
             }
         }
 
-        stage('Ansible Deployment') {
+        stage(' Step 7 : Ansible Deployment') {
             steps {
                 script {
                     echo "========== Ansible Deployment Stage =========="
