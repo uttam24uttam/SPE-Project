@@ -9,13 +9,13 @@ echo "Doctor Appointment Application"
 echo "Kubernetes Deployment Script"
 echo "=================================="
 
-# Colors for output
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m' 
 
-# Check prerequisites
+
 echo -e "${YELLOW}Checking prerequisites...${NC}"
 
 if ! command -v ansible &> /dev/null; then
@@ -28,7 +28,7 @@ if ! command -v kubectl &> /dev/null; then
     exit 1
 fi
 
-# Verify Kubernetes cluster
+
 echo -e "${YELLOW}Verifying Kubernetes cluster...${NC}"
 if kubectl cluster-info > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Kubernetes cluster is accessible${NC}"
@@ -37,7 +37,7 @@ else
     exit 1
 fi
 
-# Check if minikube and start if needed
+
 if command -v minikube &> /dev/null; then
     if ! minikube status > /dev/null 2>&1; then
         echo -e "${YELLOW}Starting minikube...${NC}"
@@ -46,7 +46,7 @@ if command -v minikube &> /dev/null; then
     fi
 fi
 
-# Update Docker images (optional)
+
 read -p "Do you want to build Docker images before deployment? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then

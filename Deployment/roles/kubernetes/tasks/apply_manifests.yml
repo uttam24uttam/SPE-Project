@@ -1,80 +1,19 @@
-# ---
-# - name: Create namespace for application
-#   command: kubectl create namespace doctor-appointment --kubeconfig={{ kubeconfig_path }}
-#   ignore_errors: yes
-
-# - name: Apply MongoDB StatefulSet
-#   command: kubectl apply -f {{ role_path }}/files/mongodb-statefulset.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Backend Deployment
-#   command: kubectl apply -f {{ role_path }}/files/backend-deployment.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Backend Service
-#   command: kubectl apply -f {{ role_path }}/files/backend-service.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Frontend Deployment
-#   command: kubectl apply -f {{ role_path }}/files/frontend-deployment.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Frontend Service
-#   command: kubectl apply -f {{ role_path }}/files/frontend-service.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Backend HPA
-#   command: kubectl apply -f {{ role_path }}/files/backend-hpa.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Frontend HPA
-#   command: kubectl apply -f {{ role_path }}/files/frontend-hpa.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Prometheus ConfigMap
-#   command: kubectl apply -f {{ role_path }}/files/prometheus-configmap.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Prometheus Deployment
-#   command: kubectl apply -f {{ role_path }}/files/prometheus-deployment.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Apply Prometheus Service
-#   command: kubectl apply -f {{ role_path }}/files/prometheus-service.yaml --kubeconfig={{ kubeconfig_path }}
-
-# - name: Restart Backend Deployment
-#   command: kubectl rollout restart deployment/backend-deployment -n doctor-appointment --kubeconfig={{ kubeconfig_path }}
-
-# - name: Restart Frontend Deployment
-#   command: kubectl rollout restart deployment/frontend-deployment -n doctor-appointment --kubeconfig={{ kubeconfig_path }}
-
-# - name: Wait for Backend Rollout
-#   command: kubectl rollout status deployment/backend-deployment -n doctor-appointment --kubeconfig={{ kubeconfig_path }}
-
-# - name: Wait for Frontend Rollout
-#   command: kubectl rollout status deployment/frontend-deployment -n doctor-appointment --kubeconfig={{ kubeconfig_path }}
-
-# - name: Get deployment status
-#   command: kubectl get deployments -n doctor-appointment --kubeconfig={{ kubeconfig_path }}
-#   register: deployment_status
-
-# - name: Print deployment status
-#   debug:
-#     msg: "{{ deployment_status.stdout }}"
-
-
-
-
-
-
-
 - name: Create namespace for application
   command: kubectl create namespace doctor-appointment --kubeconfig={{ kubeconfig_path }}
   ignore_errors: yes
 
-# --- NEW: ELK STACK DEPLOYMENT ---
+
 - name: Apply Logstash Pipeline ConfigMap
   command: kubectl apply -f {{ role_path }}/files/logstash-pipeline-configmap.yaml --kubeconfig={{ kubeconfig_path }}
-  ignore_errors: yes # Ignore if this is already included in elk-stack.yaml
+  ignore_errors: yes 
 
 - name: Apply ELK Stack (Elasticsearch & Logstash)
   command: kubectl apply -f {{ role_path }}/files/elk-stack.yaml --kubeconfig={{ kubeconfig_path }}
 
 - name: Wait for Logstash to be ready
   command: kubectl rollout status deployment/logstash -n doctor-appointment --timeout=180s --kubeconfig={{ kubeconfig_path }}
-  ignore_errors: yes # Prevents pipeline failure if Logstash is slow, but ensures we try to wait
-# ---------------------------------
+  ignore_errors: yes 
+
 
 - name: Apply MongoDB StatefulSet
   command: kubectl apply -f {{ role_path }}/files/mongodb-statefulset.yaml --kubeconfig={{ kubeconfig_path }}

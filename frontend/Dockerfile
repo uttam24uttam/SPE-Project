@@ -1,5 +1,4 @@
-# Frontend Dockerfile - Multi-stage Build
-# Stage 1: Build
+# Frontend Dockerfile
 FROM node:18-alpine AS builder
 
 WORKDIR /app
