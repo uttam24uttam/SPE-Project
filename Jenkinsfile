@@ -30,14 +30,15 @@ pipeline {
             }
         }
 
-        // stage('Test Backend') {
-        //     steps {
-        //         script {
-        //             echo "========== Test Backend Stage =========="
-        //             sh 'cd backend && npm test' || true
-        //             echo "Backend tests completed"
-        //         }
-        //     }
+        stage('Test Backend') {
+            steps {
+                script {
+                    echo "========== Test Backend Stage =========="
+                    sh 'cd backend && npm test' || true
+                    echo "Backend tests completed"
+                }
+            }
+        }
         // }
 
         stage('Build and Push Backend Docker Image') {
